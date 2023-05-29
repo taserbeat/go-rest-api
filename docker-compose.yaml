@@ -1,0 +1,37 @@
+version: "3"
+services:
+  postgres:
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    container_name: db_psql
+    ports:
+      - 15432:5432
+    restart: always
+    user: root
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=p@ssw0rd
+      - POSTGRES_DB=test_db
+      - TZ=Asia/Tokyo
+      - LANG=ja_JP.utf8
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  pgweb:
+    image: sosedoff/pgweb:0.14.0
+    container_name: pgweb
+    ports:
+      - 8081:8081
+    environment:
+      # postgres://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB_NAME}?sslmode={MODE}
+      - DATABASE_URL=postgres://root:p@ssw0rd@postgres:5432/test_db?sslmode=disable
+    links:
+      - postgres:postgres
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
