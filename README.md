@@ -8,12 +8,29 @@ TODO: 追記
 
 # 実行方法
 
-TODO: 追記
+## 1. Docker コンテナの起動
 
 ```bash
 # コンテナの起動
 docker-compose up -d
 ```
+
+## 2. DB のマイグレーション
+
+```bash
+GO_ENV=dev go run migrate/migrate.go
+
+>> Connected!
+>> Successfully Migrated!
+```
+
+\* pgweb でマイグレーションを確認しておく
+
+pgweb: http://localhost:8081
+
+# 終了方法
+
+## 1. Docker コンテナの終了
 
 ```bash
 # コンテナの終了
