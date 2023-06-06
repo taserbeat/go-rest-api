@@ -28,6 +28,12 @@ GO_ENV=dev go run migrate/migrate.go
 
 pgweb: http://localhost:8081
 
+## 3. バックエンドの起動
+
+```bash
+GO_ENV=dev go run main.go
+```
+
 # 終了方法
 
 ## 1. Docker コンテナの終了
