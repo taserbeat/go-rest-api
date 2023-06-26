@@ -3,6 +3,7 @@ package usecase
 import (
 	"go-rest-api/models"
 	"go-rest-api/repository"
+	"go-rest-api/validator"
 	"os"
 	"time"
 
@@ -21,21 +22,27 @@ type IUserUsecase interface {
 }
 
 type userUsecase struct {
-	userRepository repository.IUserRepository
+	ur repository.IUserRepository
+	uv validator.IUserValidator
 }
 
-func NewUserUsecase(ur repository.IUserRepository) IUserUsecase {
-	return &userUsecase{ur}
+func NewUserUsecase(ur repository.IUserRepository, uv validator.IUserValidator) IUserUsecase {
+	return &userUsecase{ur, uv}
 }
 
 func (uu *userUsecase) SignUp(user models.User) (models.UserResponse, error) {
+	// サインアップ時の入力値をバリデーションする
+	if err := uu.uv.UserValidate(user); err != nil {
+		return models.UserResponse{}, err
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	if err != nil {
 		return models.UserResponse{}, err
 	}
 
 	newUser := models.User{Email: user.Email, Password: string(hash)}
-	if err := uu.userRepository.CreateUser(&newUser); err != nil {
+	if err := uu.ur.CreateUser(&newUser); err != nil {
 		return models.UserResponse{}, err
 	}
 
@@ -48,9 +55,14 @@ func (uu *userUsecase) SignUp(user models.User) (models.UserResponse, error) {
 }
 
 func (uu *userUsecase) Login(user models.User) (string, error) {
+	// ログイン時にバリデーションを行う
+	if err := uu.uv.UserValidate(user); err != nil {
+		return "", err
+	}
+
 	storedUser := models.User{}
 
-	if err := uu.userRepository.GetUserByEmail(&storedUser, user.Email); err != nil {
+	if err := uu.ur.GetUserByEmail(&storedUser, user.Email); err != nil {
 		return "", err
 	}
 
